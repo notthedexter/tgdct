@@ -1,0 +1,7 @@
+# Dependencies for Speech-to-Text API
+google-genai
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+requests  # For testing

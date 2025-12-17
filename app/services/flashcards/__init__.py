@@ -1,0 +1,1 @@
+# Flashcards service module
