@@ -57,7 +57,7 @@ Be accurate and educational."""
         user_message = f"Generate 5 {language_name} flashcards with diverse topics"
 
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=f"{system_prompt}\n\n{user_message}"
         )
 

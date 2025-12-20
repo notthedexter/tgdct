@@ -6,11 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.services.general_routes import router as general_router
 from app.services.stt.stt_route import router as stt_router
+from app.services.tts.tts_route import router as tts_router
 from app.services.writing.writing_route import router as writing_router
 from app.services.dictionary.dictionary_route import router as dictionary_router
 from app.services.flashcards.flashcards_route import router as flashcards_router
 from app.services.roleplay.roleplay_route import router as roleplay_router
-# from app.services.tts.tts_route import router as tts_router  # Temporarily disabled due to PyTorch installation issues
+from app.services.lesson.lesson_route import router as lesson_router
 
 
 def create_app() -> FastAPI:
@@ -37,11 +38,12 @@ def create_app() -> FastAPI:
     # Include routers
     app.include_router(general_router)
     app.include_router(stt_router)
+    app.include_router(tts_router)
     app.include_router(writing_router)
     app.include_router(dictionary_router)
     app.include_router(flashcards_router)
     app.include_router(roleplay_router)
-    # app.include_router(tts_router)  # Temporarily disabled due to PyTorch installation issues
+    app.include_router(lesson_router)
     
     return app
 

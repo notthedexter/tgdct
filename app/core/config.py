@@ -20,6 +20,7 @@ class Settings:
         self.host = "127.0.0.1"
         self.port = 8054
         self.stt_model = "gemini-2.5-flash"
+        self.tts_model = "gemini-2.5-flash-tts"
         self.writing_model = "llama-3.3-70b-versatile"
         self.default_language = "en-US"  # English by default
         self.supported_languages = {

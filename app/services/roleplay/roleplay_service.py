@@ -37,7 +37,7 @@ Respond with valid JSON in this exact format:
 Make the scenario natural and the questions conversational."""
 
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=prompt
         )
 
@@ -108,7 +108,7 @@ Respond with valid JSON in this exact format:
 Only suggest improvement if there are clear issues with grammar, relevance, or naturalness."""
 
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=prompt
         )
 

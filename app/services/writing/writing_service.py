@@ -27,7 +27,7 @@ Examples: "Write about your family", "Describe your favorite food", "What did yo
 Return ONLY the prompt text in English, nothing else."""
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=f"{system_prompt}\n\nGenerate a writing prompt in English"
         )
         
@@ -79,7 +79,7 @@ User's Response (in {language_name}): {user_response}
 Evaluate this {language_name} response."""
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=f"{system_prompt}\n\n{user_message}"
         )
         

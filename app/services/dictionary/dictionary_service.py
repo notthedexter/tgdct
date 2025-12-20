@@ -48,7 +48,7 @@ class DictionaryService:
 Provide ONE word for the main object in {language_name}. Return only the word, nothing else."""
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=[
                 types.Content(
                     role="user",
@@ -106,7 +106,7 @@ Be accurate and helpful."""
         user_message = f"Define the {language_name} word: {word}"
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemma-3-27b-it",
             contents=f"{system_prompt}\n\n{user_message}"
         )
         
