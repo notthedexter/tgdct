@@ -1,12 +1,12 @@
-"""Chapter 1 Service - Merged single API for all 10 modules"""
+"""Chapter 2 Service - Action, Time and Place (A1 → A2)"""
 import json
 from difflib import get_close_matches
 import google.genai as genai
 from app.core.config import settings
-from app.services.lesson.chapters.chapter1.chapter1_schema import (
-    Chapter1GenerationRequest,
-    Chapter1Response,
-    Chapter1Content,
+from app.services.lesson.chapters.chapter2.chapter2_schema import (
+    Chapter2GenerationRequest,
+    Chapter2Response,
+    Chapter2Content,
     ModuleContent,
     MODULE_NAMES,
     ModuleTitlesRequest,
@@ -14,8 +14,8 @@ from app.services.lesson.chapters.chapter1.chapter1_schema import (
 )
 
 
-class Chapter1Service:
-    """Service for generating complete Chapter 1 with all 10 modules"""
+class Chapter2Service:
+    """Service for generating complete Chapter 2 with all 7 modules"""
 
     def __init__(self):
         """Initialize the Gemini client"""
@@ -26,32 +26,26 @@ class Chapter1Service:
         try:
             language_code = request.target_language
             
-            prompt = f"""Translate the following 10 module titles into {language_code}.
+            prompt = f"""Translate the following 7 module titles into {language_code}.
 
 Module titles in English:
-1. Essential Greetings
-2. Self Introductions
-3. Belongings
-4. Family & Relationships
-5. Basic Likes/Dislikes
-6. Gratitude & Apologies
-7. Numbers 1-10
-8. Numbers 11-100
-9. Colors
-10. Review & Integration
+1. Places and Locations
+2. Basic Feelings
+3. Expressing Affection (Advanced Edition)
+4. Expressing Surprises and Reactions
+5. Time and Telling Time
+6. Months of the Year
+7. Days of the Week
 
 Respond with ONLY a JSON object mapping module numbers to translated titles:
 {{
-  "1": "[Translation of Essential Greetings]",
-  "2": "[Translation of Self Introductions]",
-  "3": "[Translation of Belongings]",
-  "4": "[Translation of Family & Relationships]",
-  "5": "[Translation of Basic Likes/Dislikes]",
-  "6": "[Translation of Gratitude & Apologies]",
-  "7": "[Translation of Numbers 1-10]",
-  "8": "[Translation of Numbers 11-100]",
-  "9": "[Translation of Colors]",
-  "10": "[Translation of Review & Integration]"
+  "1": "[Translation of Places and Locations]",
+  "2": "[Translation of Basic Feelings]",
+  "3": "[Translation of Expressing Affection (Advanced Edition)]",
+  "4": "[Translation of Expressing Surprises and Reactions]",
+  "5": "[Translation of Time and Telling Time]",
+  "6": "[Translation of Months of the Year]",
+  "7": "[Translation of Days of the Week]"
 }}
 
 Return ONLY valid JSON. No markdown, no explanations."""
@@ -93,8 +87,8 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 titles=None
             )
 
-    async def generate(self, request: Chapter1GenerationRequest) -> Chapter1Response:
-        """Generate specified modules for Chapter 1"""
+    async def generate(self, request: Chapter2GenerationRequest) -> Chapter2Response:
+        """Generate specified modules for Chapter 2"""
         try:
             language_code = request.target_language
             
@@ -105,7 +99,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 titles_response = await self.get_module_titles(titles_request)
                 
                 if not titles_response.success:
-                    return Chapter1Response(
+                    return Chapter2Response(
                         success=False,
                         message=f"Failed to get module titles: {titles_response.message}",
                         chapter=None
@@ -136,7 +130,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                             module_nums.append(module_num)
                             matched_titles[user_title] = translated_titles[module_num]
                         else:
-                            return Chapter1Response(
+                            return Chapter2Response(
                                 success=False,
                                 message=f"Could not match title '{user_title}' to any module. Available titles: {list(translated_titles.values())}",
                                 chapter=None
@@ -145,7 +139,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 module_nums = sorted(set(module_nums))  # Remove duplicates and sort
             else:
                 # Generate all modules if none specified
-                module_nums = list(range(1, 11))
+                module_nums = list(range(1, 8))
                 matched_titles = None
             
             # Build the prompt for requested modules only
@@ -166,14 +160,14 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 result_text = result_text.strip()
 
             chapter_data = json.loads(result_text)
-            chapter = Chapter1Content(**chapter_data)
+            chapter = Chapter2Content(**chapter_data)
 
             if matched_titles:
                 module_list = ", ".join([f"{matched_titles.get(title, MODULE_NAMES[num])}" for num, title in zip(module_nums, request.module_titles)])
             else:
                 module_list = ", ".join([MODULE_NAMES[num] for num in module_nums])
                 
-            return Chapter1Response(
+            return Chapter2Response(
                 success=True,
                 message=f"Successfully generated modules for {language_code}: {module_list}",
                 chapter=chapter,
@@ -186,15 +180,15 @@ Return ONLY valid JSON. No markdown, no explanations."""
             )
 
         except json.JSONDecodeError as e:
-            return Chapter1Response(
+            return Chapter2Response(
                 success=False,
                 message=f"Failed to parse AI response: {str(e)}",
                 chapter=None
             )
         except Exception as e:
-            return Chapter1Response(
+            return Chapter2Response(
                 success=False,
-                message=f"Error generating Chapter 1: {str(e)}",
+                message=f"Error generating Chapter 2: {str(e)}",
                 chapter=None
             )
     
@@ -203,73 +197,59 @@ Return ONLY valid JSON. No markdown, no explanations."""
         
         module_specs = {
             1: {
-                "title": "Essential Greetings",
-                "vocab": ["Good Morning", "Good Afternoon", "Good Evening", "Hello", "Goodbye", 
-                         "See you later", "Good night", "How are you?", "I am fine", "And you?"],
-                "grammar_topic": "Formal vs. Informal Registers",
-                "grammar_desc": f"Explain how {language_name} distinguishes between talking to a friend vs. an elder/stranger"
+                "title": "Places and Locations",
+                "vocab": ["School", "Home", "Restaurant", "Park", "Hospital", 
+                         "Market/Store", "Library", "Office", "Street", "City/Town"],
+                "grammar_topic": "Prepositions of Place",
+                "grammar_desc": f"Explain how {language_name} expresses location (at, in, on) and basic directional prepositions"
             },
             2: {
-                "title": "Self Introductions",
-                "vocab": ["My name is Maria", "I am a student", "I am from the United States", "Nice to meet you", "Pleased to meet you",
-                         "This is my friend", "Student", "Teacher", "Country", "City"],
-                "grammar_topic": f"The Verb 'to be' in {language_name}",
-                "grammar_desc": "Explain how to form basic sentences with the verb 'to be' (I am, you are, he/she is)"
+                "title": "Basic Feelings",
+                "vocab": ["Happy", "Sad", "Angry", "Tired", "Excited", 
+                         "Bored", "Worried", "Calm", "Scared/Afraid", "Surprised"],
+                "grammar_topic": "Expressing Emotions and States",
+                "grammar_desc": f"Show how to describe feelings and emotional states in {language_name}, including verb forms for 'I feel...' or 'I am...'"
             },
             3: {
-                "title": "Belongings",
-                "vocab": ["Phone", "Bag", "Book", "Pen", "Wallet", "Keys", "Water", "This", "That", "Mine/Yours"],
-                "grammar_topic": "Possessive Markers",
-                "grammar_desc": f"Show how possession is expressed in {language_name} (e.g., my book, your phone, his keys)"
+                "title": "Expressing Affection (Advanced Edition)",
+                "vocab": ["I love you", "I care about you", "You're special", "I miss you", "I appreciate you",
+                         "You mean a lot to me", "I adore you", "You make me happy", "I treasure you", "I'm grateful for you"],
+                "grammar_topic": "Expressing Deep Emotions",
+                "grammar_desc": f"Explain how {language_name} conveys affection and emotional attachment, including any cultural nuances"
             },
             4: {
-                "title": "Family & Relationships",
-                "vocab": ["Mother", "Father", "Sister", "Brother", "Friend", "Family", "Husband", "Wife", "Child/Children", "Parents"],
-                "grammar_topic": "Describing People Using Adjectives",
-                "grammar_desc": f"Explain how adjectives are used with nouns in {language_name} (e.g., 'my older sister', 'kind friend')"
+                "title": "Expressing Surprises and Reactions",
+                "vocab": ["Wow!", "Really?", "Amazing!", "I can't believe it!", "That's incredible!",
+                         "How surprising!", "No way!", "Seriously?", "Unbelievable!", "Oh my!"],
+                "grammar_topic": "Exclamations and Interjections",
+                "grammar_desc": f"Show how to express surprise, shock, and strong reactions naturally in {language_name}"
             },
             5: {
-                "title": "Basic Likes/Dislikes",
-                "vocab": ["Like", "Love", "Dislike", "Hate", "Food", "Music", "Sports", "Movies", "Reading", "Coffee/Tea"],
-                "grammar_topic": "Verb Conjugation for Preferences",
-                "grammar_desc": f"Show how 'like', 'love', 'dislike' verbs are used in {language_name} with different subjects"
+                "title": "Time and Telling Time",
+                "vocab": ["What time is it?", "Hour", "Minute", "O'clock", "Half past",
+                         "Quarter past", "Quarter to", "Morning", "Afternoon", "Evening/Night"],
+                "grammar_topic": "Time Expressions",
+                "grammar_desc": f"Explain how to tell time in {language_name}, including different time formats and common time-related phrases"
             },
             6: {
-                "title": "Gratitude & Apologies",
-                "vocab": ["Thank you", "Thanks a lot", "You're welcome", "Sorry", "Excuse me", 
-                         "I apologize", "No problem", "It's okay", "Please", "May I ask a question?"],
-                "grammar_topic": "Polite Request Forms",
-                "grammar_desc": f"Explain how to make polite requests and responses in {language_name}"
+                "title": "Months of the Year",
+                "vocab": ["January", "February", "March", "April", "May", "June",
+                         "July", "August", "September", "October"],
+                "grammar_topic": "Temporal Expressions with Months",
+                "grammar_desc": f"Show how months are used in {language_name} with dates and temporal expressions (in January, during March, etc.)"
             },
             7: {
-                "title": "Numbers 1-10",
-                "vocab": ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"],
-                "grammar_topic": "Using Numbers with Nouns",
-                "grammar_desc": f"Explain how numbers combine with nouns in {language_name} (e.g., counting objects, using counters/classifiers if applicable)"
-            },
-            8: {
-                "title": "Numbers 11-100",
-                "vocab": ["Eleven (11)", "Twenty (20)", "Thirty (30)", "Forty (40)", "Fifty (50)", 
-                         "Sixty (60)", "Seventy (70)", "Eighty (80)", "Ninety (90)", "One hundred (100)"],
-                "grammar_topic": "Number Formation Patterns",
-                "grammar_desc": f"Explain how compound numbers are formed in {language_name} (e.g., 23 = twenty-three)"
-            },
-            9: {
-                "title": "Colors",
-                "vocab": ["Red", "Blue", "Green", "Yellow", "Black", "White", "Orange", "Purple", "Pink", "Brown"],
-                "grammar_topic": "Adjective Placement",
-                "grammar_desc": f"Show where color adjectives appear relative to nouns in {language_name} (before/after the noun)"
-            },
-            10: {
-                "title": "Review & Integration",
-                "vocab": ["Review item 1", "Review item 2", "Review item 3", "Review item 4", "Review item 5",
-                         "Review item 6", "Review item 7", "Review item 8", "Review item 9", "Review item 10"],
-                "grammar_topic": "Sentence Structure Review",
-                "grammar_desc": "Provide an overview of basic sentence patterns covered in Chapter 1"
+                "title": "Days of the Week",
+                "vocab": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+                         "Saturday", "Sunday", "Today", "Tomorrow", "Yesterday"],
+                "grammar_topic": "Time Markers and Schedule Talk",
+                "grammar_desc": f"Explain how to talk about schedules, routines, and appointments using days of the week in {language_name}"
             }
         }
         
-        prompt_parts = [f"""Generate Chapter 1 modules for learning {language_name}.
+        prompt_parts = [f"""Generate Chapter 2 modules (A1 → A2 level) for learning {language_name}.
+
+Topic: Action, Time and Place
 
 **CRITICAL INSTRUCTION**: Do not generate any greetings, introductions, or phrases that include personal names, placeholders like [your name], or similar personal references. Focus only on the educational content specified.
 

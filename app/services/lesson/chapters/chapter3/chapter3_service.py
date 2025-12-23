@@ -1,12 +1,12 @@
-"""Chapter 1 Service - Merged single API for all 10 modules"""
+"""Chapter 3 Service - Family and Relationships (A2 → B1)"""
 import json
 from difflib import get_close_matches
 import google.genai as genai
 from app.core.config import settings
-from app.services.lesson.chapters.chapter1.chapter1_schema import (
-    Chapter1GenerationRequest,
-    Chapter1Response,
-    Chapter1Content,
+from app.services.lesson.chapters.chapter3.chapter3_schema import (
+    Chapter3GenerationRequest,
+    Chapter3Response,
+    Chapter3Content,
     ModuleContent,
     MODULE_NAMES,
     ModuleTitlesRequest,
@@ -14,8 +14,8 @@ from app.services.lesson.chapters.chapter1.chapter1_schema import (
 )
 
 
-class Chapter1Service:
-    """Service for generating complete Chapter 1 with all 10 modules"""
+class Chapter3Service:
+    """Service for generating complete Chapter 3 with all 3 modules"""
 
     def __init__(self):
         """Initialize the Gemini client"""
@@ -26,32 +26,18 @@ class Chapter1Service:
         try:
             language_code = request.target_language
             
-            prompt = f"""Translate the following 10 module titles into {language_code}.
+            prompt = f"""Translate the following 3 module titles into {language_code}.
 
 Module titles in English:
-1. Essential Greetings
-2. Self Introductions
-3. Belongings
-4. Family & Relationships
-5. Basic Likes/Dislikes
-6. Gratitude & Apologies
-7. Numbers 1-10
-8. Numbers 11-100
-9. Colors
-10. Review & Integration
+1. Identify family members
+2. Use possessive pronouns correctly
+3. Introduce other people
 
 Respond with ONLY a JSON object mapping module numbers to translated titles:
 {{
-  "1": "[Translation of Essential Greetings]",
-  "2": "[Translation of Self Introductions]",
-  "3": "[Translation of Belongings]",
-  "4": "[Translation of Family & Relationships]",
-  "5": "[Translation of Basic Likes/Dislikes]",
-  "6": "[Translation of Gratitude & Apologies]",
-  "7": "[Translation of Numbers 1-10]",
-  "8": "[Translation of Numbers 11-100]",
-  "9": "[Translation of Colors]",
-  "10": "[Translation of Review & Integration]"
+  "1": "[Translation of Identify family members]",
+  "2": "[Translation of Use possessive pronouns correctly]",
+  "3": "[Translation of Introduce other people]"
 }}
 
 Return ONLY valid JSON. No markdown, no explanations."""
@@ -93,8 +79,8 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 titles=None
             )
 
-    async def generate(self, request: Chapter1GenerationRequest) -> Chapter1Response:
-        """Generate specified modules for Chapter 1"""
+    async def generate(self, request: Chapter3GenerationRequest) -> Chapter3Response:
+        """Generate specified modules for Chapter 3"""
         try:
             language_code = request.target_language
             
@@ -105,7 +91,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 titles_response = await self.get_module_titles(titles_request)
                 
                 if not titles_response.success:
-                    return Chapter1Response(
+                    return Chapter3Response(
                         success=False,
                         message=f"Failed to get module titles: {titles_response.message}",
                         chapter=None
@@ -136,7 +122,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                             module_nums.append(module_num)
                             matched_titles[user_title] = translated_titles[module_num]
                         else:
-                            return Chapter1Response(
+                            return Chapter3Response(
                                 success=False,
                                 message=f"Could not match title '{user_title}' to any module. Available titles: {list(translated_titles.values())}",
                                 chapter=None
@@ -145,7 +131,7 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 module_nums = sorted(set(module_nums))  # Remove duplicates and sort
             else:
                 # Generate all modules if none specified
-                module_nums = list(range(1, 11))
+                module_nums = list(range(1, 4))
                 matched_titles = None
             
             # Build the prompt for requested modules only
@@ -166,14 +152,14 @@ Return ONLY valid JSON. No markdown, no explanations."""
                 result_text = result_text.strip()
 
             chapter_data = json.loads(result_text)
-            chapter = Chapter1Content(**chapter_data)
+            chapter = Chapter3Content(**chapter_data)
 
             if matched_titles:
                 module_list = ", ".join([f"{matched_titles.get(title, MODULE_NAMES[num])}" for num, title in zip(module_nums, request.module_titles)])
             else:
                 module_list = ", ".join([MODULE_NAMES[num] for num in module_nums])
                 
-            return Chapter1Response(
+            return Chapter3Response(
                 success=True,
                 message=f"Successfully generated modules for {language_code}: {module_list}",
                 chapter=chapter,
@@ -186,15 +172,15 @@ Return ONLY valid JSON. No markdown, no explanations."""
             )
 
         except json.JSONDecodeError as e:
-            return Chapter1Response(
+            return Chapter3Response(
                 success=False,
                 message=f"Failed to parse AI response: {str(e)}",
                 chapter=None
             )
         except Exception as e:
-            return Chapter1Response(
+            return Chapter3Response(
                 success=False,
-                message=f"Error generating Chapter 1: {str(e)}",
+                message=f"Error generating Chapter 3: {str(e)}",
                 chapter=None
             )
     
@@ -203,73 +189,31 @@ Return ONLY valid JSON. No markdown, no explanations."""
         
         module_specs = {
             1: {
-                "title": "Essential Greetings",
-                "vocab": ["Good Morning", "Good Afternoon", "Good Evening", "Hello", "Goodbye", 
-                         "See you later", "Good night", "How are you?", "I am fine", "And you?"],
-                "grammar_topic": "Formal vs. Informal Registers",
-                "grammar_desc": f"Explain how {language_name} distinguishes between talking to a friend vs. an elder/stranger"
+                "title": "Identify family members",
+                "vocab": ["Grandfather", "Grandmother", "Uncle", "Aunt", "Cousin (male)", 
+                         "Cousin (female)", "Nephew", "Niece", "In-laws", "Relatives"],
+                "grammar_topic": "Extended Family Vocabulary and Relationships",
+                "grammar_desc": f"Explain how {language_name} describes extended family relationships, including any gender distinctions or formal/informal variations"
             },
             2: {
-                "title": "Self Introductions",
-                "vocab": ["My name is Maria", "I am a student", "I am from the United States", "Nice to meet you", "Pleased to meet you",
-                         "This is my friend", "Student", "Teacher", "Country", "City"],
-                "grammar_topic": f"The Verb 'to be' in {language_name}",
-                "grammar_desc": "Explain how to form basic sentences with the verb 'to be' (I am, you are, he/she is)"
+                "title": "Use possessive pronouns correctly",
+                "vocab": ["My", "Your (singular)", "His", "Her", "Our", 
+                         "Your (plural)", "Their", "Mine", "Yours", "Theirs"],
+                "grammar_topic": "Possessive Pronouns and Determiners",
+                "grammar_desc": f"Show the difference between possessive determiners (my, your) and possessive pronouns (mine, yours) in {language_name}, and how they agree with nouns"
             },
             3: {
-                "title": "Belongings",
-                "vocab": ["Phone", "Bag", "Book", "Pen", "Wallet", "Keys", "Water", "This", "That", "Mine/Yours"],
-                "grammar_topic": "Possessive Markers",
-                "grammar_desc": f"Show how possession is expressed in {language_name} (e.g., my book, your phone, his keys)"
-            },
-            4: {
-                "title": "Family & Relationships",
-                "vocab": ["Mother", "Father", "Sister", "Brother", "Friend", "Family", "Husband", "Wife", "Child/Children", "Parents"],
-                "grammar_topic": "Describing People Using Adjectives",
-                "grammar_desc": f"Explain how adjectives are used with nouns in {language_name} (e.g., 'my older sister', 'kind friend')"
-            },
-            5: {
-                "title": "Basic Likes/Dislikes",
-                "vocab": ["Like", "Love", "Dislike", "Hate", "Food", "Music", "Sports", "Movies", "Reading", "Coffee/Tea"],
-                "grammar_topic": "Verb Conjugation for Preferences",
-                "grammar_desc": f"Show how 'like', 'love', 'dislike' verbs are used in {language_name} with different subjects"
-            },
-            6: {
-                "title": "Gratitude & Apologies",
-                "vocab": ["Thank you", "Thanks a lot", "You're welcome", "Sorry", "Excuse me", 
-                         "I apologize", "No problem", "It's okay", "Please", "May I ask a question?"],
-                "grammar_topic": "Polite Request Forms",
-                "grammar_desc": f"Explain how to make polite requests and responses in {language_name}"
-            },
-            7: {
-                "title": "Numbers 1-10",
-                "vocab": ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"],
-                "grammar_topic": "Using Numbers with Nouns",
-                "grammar_desc": f"Explain how numbers combine with nouns in {language_name} (e.g., counting objects, using counters/classifiers if applicable)"
-            },
-            8: {
-                "title": "Numbers 11-100",
-                "vocab": ["Eleven (11)", "Twenty (20)", "Thirty (30)", "Forty (40)", "Fifty (50)", 
-                         "Sixty (60)", "Seventy (70)", "Eighty (80)", "Ninety (90)", "One hundred (100)"],
-                "grammar_topic": "Number Formation Patterns",
-                "grammar_desc": f"Explain how compound numbers are formed in {language_name} (e.g., 23 = twenty-three)"
-            },
-            9: {
-                "title": "Colors",
-                "vocab": ["Red", "Blue", "Green", "Yellow", "Black", "White", "Orange", "Purple", "Pink", "Brown"],
-                "grammar_topic": "Adjective Placement",
-                "grammar_desc": f"Show where color adjectives appear relative to nouns in {language_name} (before/after the noun)"
-            },
-            10: {
-                "title": "Review & Integration",
-                "vocab": ["Review item 1", "Review item 2", "Review item 3", "Review item 4", "Review item 5",
-                         "Review item 6", "Review item 7", "Review item 8", "Review item 9", "Review item 10"],
-                "grammar_topic": "Sentence Structure Review",
-                "grammar_desc": "Provide an overview of basic sentence patterns covered in Chapter 1"
+                "title": "Introduce other people",
+                "vocab": ["This is my brother", "I'd like you to meet my colleague", "Meet my friend Anna", "Let me introduce my teacher", "Have you met my sister?",
+                         "Do you know my parents?", "Allow me to introduce my boss", "I'd like to introduce you to my neighbor", "Say hello to my classmate", "You should meet my cousin"],
+                "grammar_topic": "Introduction Formulas and Social Registers",
+                "grammar_desc": f"Explain formal vs informal introduction phrases in {language_name}, including appropriate contexts for each level of formality"
             }
         }
         
-        prompt_parts = [f"""Generate Chapter 1 modules for learning {language_name}.
+        prompt_parts = [f"""Generate Chapter 3 modules (A2 → B1 level) for learning {language_name}.
+
+Topic: Family and Relationships
 
 **CRITICAL INSTRUCTION**: Do not generate any greetings, introductions, or phrases that include personal names, placeholders like [your name], or similar personal references. Focus only on the educational content specified.
 
