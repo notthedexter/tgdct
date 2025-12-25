@@ -5,7 +5,7 @@ class LessonService:
     """Main lesson service that routes to different chapter services"""
     
     def __init__(self):
-        self.available_chapters = [1, 2, 3]  # Expandable as more chapters are added
+        self.available_chapters = [1, 2, 3, 4]  # Expandable as more chapters are added
         self.chapter_info = {
             1: {
                 "title": "Introduction to Language Basics",
@@ -20,6 +20,11 @@ class LessonService:
             3: {
                 "title": "Family and Relationships",
                 "level": "A2 → B1",
+                "module_count": 3
+            },
+            4: {
+                "title": "Expressing Gratitude and Apologies",
+                "level": "B1 → B2",
                 "module_count": 3
             }
         }

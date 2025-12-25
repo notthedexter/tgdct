@@ -1,0 +1,138 @@
+"""Dialogue builder service using Gemini API for generating conversational dialogues."""
+import google.genai as genai
+from app.core.config import settings
+from .dialogue_schema import DialogueRequest, DialogueResponse, DialogueQuestion, DialogueOption, AnswerEvaluation
+import json
+
+
+class DialogueBuilderService:
+    """Service for generating conversational dialogues with multiple choice questions."""
+
+    def __init__(self):
+        """Initialize the Gemini client."""
+        self.gemini_client = genai.Client(api_key=settings.get_api_key())
+
+    async def generate_dialogue(self, scenario: str, language: str = "en-US") -> DialogueResponse:
+        """Generate a conversational dialogue with max 3 questions based on the scenario.
+
+        Args:
+            scenario: The scenario or prompt for the dialogue
+
+        Returns:
+            DialogueResponse with questions, each having 2 options (one correct)
+        """
+        language_name = settings.supported_languages.get(language, "the target language")
+
+        json_format = """
+JSON Format:
+{
+  "scenario": "brief description of the dialogue scenario",
+  "questions": [
+    {
+      "question": "AI's statement or question",
+      "options": [
+        {"text": "Wrong response"},
+        {"text": "Correct response"}
+      ],
+      "correct_option_index": 0 or 1
+    }
+  ]
+}"""
+
+        system_prompt = f"""You are a dialogue builder for {language_name} language learning.
+
+OBJECTIVE:
+Generate a conversational dialogue with a maximum of 3 questions. Each question shows what the AI says, then provides exactly 2 response options for the user in {language_name}, where only one response is appropriate/correct.
+
+Instructions:
+1. The dialogue should be based on the given scenario and build conversationally.
+2. Each question should follow the flow of conversation.
+3. Provide exactly 2 response options: one appropriate/correct response, one inappropriate/wrong response.
+4. The wrong response should be clearly incorrect for the context (like responding "Good night" to "Good morning").
+5. Focus on conversational appropriateness, not just grammar.
+6. Keep questions and options simple and appropriate for language learners.
+7. Output ONLY valid JSON in the specified format.
+
+Examples:
+- AI: "Good morning!"
+  Options: ["Good night!", "Good morning!"] (correct: second)
+- AI: "How are you?"
+  Options: ["I'm fine, thank you.", "I don't know."] (correct: first)
+
+""" + json_format
+
+        user_message = f"Generate a dialogue for this scenario: {scenario}"
+
+        response = self.gemini_client.models.generate_content(
+            model="gemma-3-27b-it",
+            contents=f"{system_prompt}\n\n{user_message}",
+            config={
+                "temperature": 0.7,
+                "top_p": 0.8,
+                "top_k": 40
+            }
+        )
+
+        response_text = response.text.strip()
+
+        # Parse JSON response
+        try:
+            # Remove markdown code blocks if present
+            if response_text.startswith("```"):
+                response_text = response_text.split("```")[1]
+                if response_text.startswith("json"):
+                    response_text = response_text[4:]
+                response_text = response_text.strip()
+
+            result = json.loads(response_text)
+
+            # Validate and convert to our models
+            questions = []
+            for q in result.get("questions", []):
+                options = [DialogueOption(text=opt["text"]) for opt in q["options"]]
+                question = DialogueQuestion(
+                    question=q["question"],
+                    options=options,
+                    correct_option_index=q["correct_option_index"]
+                )
+                questions.append(question)
+
+            return DialogueResponse(
+                scenario=result.get("scenario", scenario),
+                questions=questions[:3]  # Ensure max 3 questions
+            )
+
+        except (json.JSONDecodeError, KeyError) as e:
+            # Fallback if parsing fails
+            return DialogueResponse(
+                scenario=scenario,
+                questions=[]
+            )
+
+    def evaluate_answer(self, question: DialogueQuestion, selected_option_index: int) -> AnswerEvaluation:
+        """Evaluate if the selected answer is correct.
+
+        Args:
+            question: The dialogue question
+            selected_option_index: The index of the selected option
+
+        Returns:
+            AnswerEvaluation with correctness and explanation
+        """
+        is_correct = selected_option_index == question.correct_option_index
+        correct_answer = question.options[question.correct_option_index].text
+
+        if is_correct:
+            explanation = "Correct! Well done."
+        else:
+            explanation = f"Incorrect. The correct answer is: {correct_answer}"
+
+        return AnswerEvaluation(
+            is_correct=is_correct,
+            correct_answer=correct_answer,
+            explanation=explanation
+        )
+
+
+# Initialize service
+dialogue_builder_service = DialogueBuilderService()

@@ -4,6 +4,7 @@ from app.services.lesson.lesson_schema import ChapterListResponse, ChapterInfoRe
 from app.services.lesson.chapters.chapter1.chapter1_route import router as chapter1_router
 from app.services.lesson.chapters.chapter2.chapter2_route import router as chapter2_router
 from app.services.lesson.chapters.chapter3.chapter3_route import router as chapter3_router
+from app.services.lesson.chapters.chapter4.chapter4_route import router as chapter4_router
 
 
 router = APIRouter(prefix="/lesson", tags=["Language Learning"])
@@ -72,3 +73,4 @@ async def get_chapter_info(request: ChapterInfoRequest):
 router.include_router(chapter1_router, prefix="/chapter1", tags=["Chapter 1"])
 router.include_router(chapter2_router, prefix="/chapter2", tags=["Chapter 2"])
 router.include_router(chapter3_router, prefix="/chapter3", tags=["Chapter 3"])
+router.include_router(chapter4_router, prefix="/chapter4", tags=["Chapter 4"])

@@ -5,3 +5,8 @@ uvicorn[standard]
 python-multipart
 python-dotenv
 requests  # For testing
+
+# TTS Dependencies
+transformers
+torch
+scipy

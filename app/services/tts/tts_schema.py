@@ -7,7 +7,7 @@ class TextToSpeechRequest(BaseModel):
     """Request schema for text-to-speech conversion."""
 
     text: str = Field(..., description="Text to convert to speech")
-    language: str = Field(default="en-US", description="Language for speech synthesis (BCP-47 code)")
+    language: str = Field(default="tl-PH", description="Language for speech synthesis (BCP-47 code)")
 
 
 class TextToSpeechResponse(BaseModel):

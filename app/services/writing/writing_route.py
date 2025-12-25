@@ -18,7 +18,7 @@ async def generate_prompt(
                 status_code=400,
                 detail=f"Unsupported language. Supported: {', '.join(settings.supported_languages.keys())}"
             )
-        prompt = writing_service.generate_prompt(language)
+        prompt = await writing_service.generate_prompt(language)
         return prompt
     except HTTPException:
         raise
@@ -30,7 +30,7 @@ async def generate_prompt(
 async def evaluate_response(request: EvaluationRequest):
     """Evaluate user's writing response."""
     try:
-        evaluation = writing_service.evaluate_response(
+        evaluation = await writing_service.evaluate_response(
             request.prompt,
             request.user_response,
             request.language
