@@ -7,6 +7,8 @@ python-dotenv
 requests  # For testing
 
 # TTS Dependencies
-transformers
-torch
-scipy
+gtts
+# torch
+# scipy
+
+gtts

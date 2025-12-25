@@ -13,6 +13,8 @@ from app.services.flashcards.flashcards_route import router as flashcards_router
 from app.services.roleplay.roleplay_route import router as roleplay_router
 from app.services.lesson.lesson_route import router as lesson_router
 from app.services.dialogue.dialogue_route import router as dialogue_router
+from app.services.listening.listening_route import router as listening_router
+from app.services.story.story_route import router as story_router
 
 
 def create_app() -> FastAPI:
@@ -45,6 +47,8 @@ def create_app() -> FastAPI:
     app.include_router(flashcards_router)
     app.include_router(roleplay_router)
     app.include_router(dialogue_router)
+    app.include_router(listening_router)
+    app.include_router(story_router)
     app.include_router(lesson_router)
     
     return app

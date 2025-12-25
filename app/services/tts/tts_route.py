@@ -13,20 +13,20 @@ router = APIRouter(prefix="", tags=["Text-to-Speech"])
 @router.post("/synthesize")
 async def synthesize_speech(request: TextToSpeechRequest):
     """
-    Synthesize speech from text using Hugging Face TTS model.
+    Synthesize speech from text using gTTS.
 
     Args:
-        request: TextToSpeechRequest with text and options
+        request: TextToSpeechRequest with language and text
 
     Returns:
-        Audio file in WAV format
+        Audio file in MP3 format
     """
     try:
-        # Validate language (only tl-PH supported)
-        if request.language not in ["tl-PH", "en-US"]:
+        # Validate language
+        if request.language not in ["en-US", "tl-PH"]:
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported language. Use: tl-PH"
+                detail="Unsupported language. Use: en-US or tl-PH"
             )
 
         # Validate text
@@ -39,7 +39,7 @@ async def synthesize_speech(request: TextToSpeechRequest):
             language=request.language
         )
 
-        # Return audio as WAV file
+        # Return audio as MP3 file
         return Response(
             content=audio_bytes,
             media_type="audio/wav",

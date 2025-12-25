@@ -137,6 +137,8 @@ Evaluate ONLY for grammar accuracy. Provide your evaluation in JSON format with:
 2. need_to_improve: false if rating is "excellent", true otherwise
 3. sample_response: A corrected version of the student's response with proper grammar
 
+IMPORTANT: The prompt is in English, but the user's response is in {language_name}. Evaluate the {language_name} response based on how well it addresses the English prompt.
+
 Respond ONLY with valid JSON in this exact format:
 {{
   "rating": "excellent|good|need to improve",
