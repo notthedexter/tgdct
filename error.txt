@@ -1,0 +1,13 @@
+(apenv) PS D:\tgdct> git commit -m "this is the total error branch"
+[error 753d038] this is the total error branch
+ 18 files changed, 795 insertions(+), 153 deletions(-)
+ create mode 100644 app/services/conversation/conversation_route.py
+ create mode 100644 app/services/conversation/conversation_schema.py
+ create mode 100644 app/services/conversation/conversation_service.py
+ create mode 100644 app/services/listening/listening_route.py
+ create mode 100644 app/services/listening/listening_schema.py
+ create mode 100644 app/services/listening/listening_service.py
+ create mode 100644 app/services/story/story_route.py
+ create mode 100644 app/services/story/story_schema.py
+ create mode 100644 app/services/story/story_service.py
+ create mode 100644 test_normalize.py
