@@ -98,102 +98,81 @@ Instructions:
 
         return PromptResponse(prompt=prompt)
 
-    async def evaluate_response(
-        self, 
-        prompt: str, 
-        user_response: str, 
-        language: str = "en-US"
-    ) -> EvaluationResponse:
-        """Evaluate user's writing response using Gemini API.
-
-        Args:
-            prompt: The writing prompt that was given
-            user_response: The user's written response
-            language: Language code for evaluation context
-
-        Returns:
-            EvaluationResponse with rating, need_to_improve flag, feedback, and sample response
-        """
-        language_name = settings.supported_languages.get(language, "the target language")
+    async def evaluate_response(self, prompt: str, user_response: str, language: str = "en-US") -> EvaluationResponse:
+        """Evaluate a user's writing response.
         
-        system_prompt = f"""You are a basic {language_name} language teacher evaluating beginner learners.
+        Args:
+            prompt: The original writing prompt (in English)
+            user_response: User's written response (in their chosen language)
+            language: Language code of the response
+            
+        Returns:
+            EvaluationResponse with rating and feedback
+        """
+        language_name = settings.supported_languages.get(language, "Tagalog")
+        
+        system_prompt = f"""You are a supportive language teacher evaluating {language_name} writing practice.
 
-Your task is to evaluate student writing based ONLY on grammar accuracy:
-- Check for basic grammar errors (verb tenses, subject-verb agreement, articles, prepositions)
-- Ignore vocabulary, style, content, or advanced structures
-- Focus on simple, clear sentences
+IMPORTANT: The prompt is in English, but the user's response is in {language_name}. Evaluate the {language_name} response based on how well it addresses the English prompt.
 
-Provide constructive feedback focused on grammar corrections only."""
-
-        user_message = f"""Please evaluate the following {language_name} writing response to a prompt.
-
-Prompt: {prompt}
-
-Student's Response:
-{user_response}
-
-Evaluate ONLY for grammar accuracy. Provide your evaluation in JSON format with:
-1. rating: "excellent" (no grammar errors), "good" (1-2 minor errors), or "need to improve" (multiple grammar errors)
-2. need_to_improve: false if rating is "excellent", true otherwise
-3. sample_response: A corrected version of the student's response with proper grammar
+Task: Evaluate the user's response and provide:
+1. A rating: "excellent", "good", or "need to improve"
+2. Exactly 2-3 sentences of feedback on how good the response is. The 3 points are: 
+    2.1 If the response is relavent to question.
+    2.2 How good the grammar is.
+    2.3 Suggestions for improvement(For excellent responses, write you're doing great).
+3. Each feedback line MUST not exceed 10 words
 
 Respond ONLY with valid JSON in this exact format:
 {{
   "rating": "excellent|good|need to improve",
-  "need_to_improve": false,
-  "sample_response": "Corrected version of the student's response"
-}}"""
+  "feedback": ["point 2.1", "point 2.2", "point 2.3"]
+}}
 
+Rating criteria:
+- "excellent": Clear, well-structured, natural {language_name} language use, good grammar, addresses the prompt well
+- "good": Understandable with minor issues, decent effort, somewhat addresses the prompt
+- "need to improve": Confusing, major grammar issues, very short/incomplete, or doesn't address the prompt
+
+Make feedback specific, encouraging, and actionable. Keep each point to 5-6 words. Provide feedback in English."""
+        
+        user_message = f"""Prompt (in English): {prompt}
+
+User's Response (in {language_name}): {user_response}
+
+Evaluate this {language_name} response."""
+        
+        response = self.gemini_client.models.generate_content(
+            model="gemma-3-27b-it",
+            contents=f"{system_prompt}\n\n{user_message}"
+        )
+        
+        result_text = response.text.strip()
+        
+        # Parse JSON response
         try:
-            message = self.gemini_client.models.generate_content(
-                model="gemma-3-27b-it",
-                contents=f"{system_prompt}\n\n{user_message}"
-            )
-
-            response_text = message.text.strip()
-
-            # Parse JSON response
-            try:
-                # Remove markdown code blocks if present
-                if response_text.startswith("```"):
-                    response_text = response_text.split("```")[1]
-                    if response_text.startswith("json"):
-                        response_text = response_text[4:]
-                    response_text = response_text.strip()
-
-                result = json.loads(response_text)
-
-                # Validate rating
-                rating = result.get("rating", "need to improve").lower()
-                if rating not in ["excellent", "good", "need to improve"]:
-                    rating = "need to improve"
-
-                # Set need_to_improve based on rating
-                need_to_improve = rating != "excellent"
-
-                sample_response = result.get("sample_response", "Unable to generate sample response.")
-
-                return EvaluationResponse(
-                    rating=rating,
-                    need_to_improve=need_to_improve,
-                    sample_response=sample_response
-                )
-
-            except json.JSONDecodeError:
-                # Fallback if JSON parsing fails
-                return EvaluationResponse(
-                    rating="need to improve",
-                    need_to_improve=True,
-                    sample_response="Unable to generate sample response."
-                )
-
-        except Exception as e:
-            # Fallback for API errors
+            # Remove markdown code blocks if present
+            if result_text.startswith("```"):
+                result_text = result_text.split("```")[1]
+                if result_text.startswith("json"):
+                    result_text = result_text[4:]
+            
+            result = json.loads(result_text)
+            rating = result.get("rating", "good")
+            feedback = result.get("feedback", ["Response received.", "Keep practicing!", "Try more details."])
+            
+            # Ensure feedback is a list of exactly 3 strings
+            if not isinstance(feedback, list) or len(feedback) != 3:
+                feedback = ["Response received.", "Keep practicing!", "Try more details."]
+            
+            return EvaluationResponse(rating=rating, feedback=feedback)
+        except json.JSONDecodeError:
+            # Fallback if JSON parsing fails
             return EvaluationResponse(
-                rating="need to improve",
-                need_to_improve=True,
-                sample_response="Unable to generate sample response."
+                rating="good",
+                feedback=["Response received.", "Keep practicing!", "Try more details."]
             )
+
 
 
 # Initialize service

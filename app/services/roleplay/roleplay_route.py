@@ -4,7 +4,7 @@ from .roleplay_service import roleplay_service
 from .roleplay_schema import RoleplayScenarioRequest, RoleplayResponseRequest
 from app.core.config import settings
 
-router = APIRouter(prefix="/roleplay", tags=["AI Roleplay"])
+router = APIRouter(prefix="/roleplay", tags=["AI Roleplay Simulation"])
 
 
 @router.post("/generate-scenario")

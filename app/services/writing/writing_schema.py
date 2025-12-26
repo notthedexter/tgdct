@@ -18,5 +18,4 @@ class EvaluationRequest(BaseModel):
 class EvaluationResponse(BaseModel):
     """Response model for evaluation."""
     rating: str  # excellent, good, or need to improve
-    need_to_improve: bool  # false if excellent, true otherwise
-    sample_response: str  # example good response to the prompt
+    feedback: List[str]  # 2-3 bullet points

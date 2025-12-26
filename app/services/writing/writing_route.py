@@ -1,4 +1,4 @@
-"""Writing practice routes."""
+
 from fastapi import APIRouter, HTTPException, Query
 from .writing_service import writing_service
 from .writing_schema import EvaluationRequest
