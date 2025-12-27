@@ -90,6 +90,22 @@ Be accurate and educational."""
             # Fallback if JSON parsing fails
             return FlashcardResponse(flashcards=[], language=language)
 
+    def validate_flashcard(self, word: str, user_response: str) -> bool:
+        """Validate if user's response matches the correct word.
+
+        Args:
+            word: The correct word
+            user_response: The user's answer
+
+        Returns:
+            bool: True if the responses match (case-insensitive), False otherwise
+        """
+        # Normalize both strings: strip whitespace, convert to lowercase
+        normalized_word = word.strip().lower()
+        normalized_response = user_response.strip().lower()
+        
+        return normalized_word == normalized_response
+
 
 # Initialize service
 flashcards_service = FlashcardsService()

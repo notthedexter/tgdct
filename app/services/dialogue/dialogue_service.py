@@ -29,10 +29,11 @@ JSON Format:
   "scenario": "brief description of the dialogue scenario",
   "questions": [
     {
-      "question": "AI's statement or question",
+      "question": "AI's statement or question in target language",
+      "question_english": "AI's statement or question in English",
       "options": [
-        {"text": "Wrong response"},
-        {"text": "Correct response"}
+        {"text": "Wrong response in target language", "english_text": "Wrong response in English"},
+        {"text": "Correct response in target language", "english_text": "Correct response in English"}
       ],
       "correct_option_index": 0 or 1
     }
@@ -42,22 +43,28 @@ JSON Format:
         system_prompt = f"""You are a dialogue builder for {language_name} language learning.
 
 OBJECTIVE:
-Generate a conversational dialogue with a maximum of 3 questions. Each question shows what the AI says, then provides exactly 2 response options for the user in {language_name}, where only one response is appropriate/correct.
+Generate a conversational dialogue with a maximum of 3 questions. Each question shows what the AI says in BOTH {language_name} AND English, then provides exactly 2 response options for the user in BOTH languages, where only one response is appropriate/correct.
 
 Instructions:
 1. The dialogue should be based on the given scenario and build conversationally.
 2. Each question should follow the flow of conversation.
-3. Provide exactly 2 response options: one appropriate/correct response, one inappropriate/wrong response.
-4. The wrong response should be clearly incorrect for the context (like responding "Good night" to "Good morning").
-5. Focus on conversational appropriateness, not just grammar.
-6. Keep questions and options simple and appropriate for language learners.
-7. Output ONLY valid JSON in the specified format.
+3. For EVERY question, provide:
+   - "question": The AI's statement/question in {language_name}
+   - "question_english": The exact same statement/question in English
+4. For EVERY option, provide:
+   - "text": The response option in {language_name}
+   - "english_text": The exact same response option in English
+5. Provide exactly 2 response options: one appropriate/correct response, one inappropriate/wrong response.
+6. The wrong response should be clearly incorrect for the context (like responding "Good night" to "Good morning").
+7. Focus on conversational appropriateness, not just grammar.
+8. Keep questions and options simple and appropriate for language learners.
+9. Output ONLY valid JSON in the specified format.
 
 Examples:
-- AI: "Good morning!"
-  Options: ["Good night!", "Good morning!"] (correct: second)
-- AI: "How are you?"
-  Options: ["I'm fine, thank you.", "I don't know."] (correct: first)
+- AI (in {language_name}): "Good morning!" / (in English): "Good morning!"
+  Options: 
+    [{language_name}: "Good night!", English: "Good night!"], 
+    [{language_name}: "Good morning!", English: "Good morning!"] (correct: second)
 
 """ + json_format
 
@@ -89,9 +96,15 @@ Examples:
             # Validate and convert to our models
             questions = []
             for q in result.get("questions", []):
-                options = [DialogueOption(text=opt["text"]) for opt in q["options"]]
+                options = [
+                    DialogueOption(
+                        text=opt["text"],
+                        english_text=opt.get("english_text", opt["text"])
+                    ) for opt in q["options"]
+                ]
                 question = DialogueQuestion(
                     question=q["question"],
+                    question_english=q.get("question_english", q["question"]),
                     options=options,
                     correct_option_index=q["correct_option_index"]
                 )
