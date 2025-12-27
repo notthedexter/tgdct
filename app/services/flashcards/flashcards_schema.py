@@ -17,3 +17,14 @@ class FlashcardResponse(BaseModel):
     """Response model for flashcard generation."""
     flashcards: List[FlashcardItem]  # List of 5 flashcard items
     language: str  # The language code
+
+
+class FlashcardValidationRequest(BaseModel):
+    """Request model for validating a flashcard answer."""
+    word: str  # The correct word
+    user_response: str  # The user's answer
+
+
+class FlashcardValidationResponse(BaseModel):
+    """Response model for flashcard validation."""
+    matches: bool  # Whether the user's response matches the correct word

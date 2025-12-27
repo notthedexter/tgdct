@@ -5,12 +5,14 @@ from typing import List
 
 class DialogueOption(BaseModel):
     """Represents a dialogue option."""
-    text: str
+    text: str  # Option in target language
+    english_text: str  # Option in English
 
 
 class DialogueQuestion(BaseModel):
     """Represents a dialogue question with options."""
-    question: str
+    question: str  # Question in target language
+    question_english: str  # Question in English
     options: List[DialogueOption]
     correct_option_index: int
 
