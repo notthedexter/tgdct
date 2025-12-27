@@ -1,13 +1,55 @@
 """AI Roleplay service using Gemini API."""
+import json
+import random
+
 import google.genai as genai
 from google.genai import types
+
 from app.core.config import settings
 from .roleplay_schema import RoleplayScenarioResponse, RoleplayResponseEvaluation
-import json
 
 
 class RoleplayService:
     """Service for AI-powered roleplay scenarios and response evaluation."""
+
+    SCENARIO_CATEGORIES = [
+        {
+            "name": "Shopping",
+            "focus": "Stores, markets, prices, availability, sizes, quantities."
+        },
+        {
+            "name": "Travel",
+            "focus": "Airports, stations, hotels, itineraries, directions, tickets."
+        },
+        {
+            "name": "Social",
+            "focus": "Meeting friends, making plans, introductions, casual chats."
+        },
+        {
+            "name": "Dining",
+            "focus": "Restaurants, cafes, ordering food, reservations, paying bills."
+        },
+        {
+            "name": "Healthcare",
+            "focus": "Clinics, pharmacies, symptoms, appointments, advice."
+        },
+        {
+            "name": "Work or School",
+            "focus": "Colleagues, teachers, assignments, schedules, requests."
+        },
+        {
+            "name": "Public Services",
+            "focus": "Government offices, banks, transportation services, utilities."
+        },
+        {
+            "name": "Entertainment",
+            "focus": "Movies, concerts, museums, sports, leisure plans."
+        },
+        {
+            "name": "Home and Daily Life",
+            "focus": "Neighbors, household tasks, repairs, deliveries, family."
+        },
+    ]
 
     def __init__(self):
         """Initialize the Gemini client."""
@@ -23,18 +65,30 @@ class RoleplayService:
             RoleplayScenarioResponse with scenario and questions
         """
         language_name = settings.supported_languages.get(language, "the target language")
-        
-        prompt = f"""Generate a simple roleplay scenario for language learning. The scenario should be appropriate for {language_name} learners and involve everyday situations.
+        scenario_category = random.choice(self.SCENARIO_CATEGORIES)
+
+        prompt = f"""Generate a vivid, everyday roleplay scenario for {language_name} learners.
+
+Scenario category: {scenario_category['name']}
+Category focus: {scenario_category['focus']}
+
+Guidelines:
+- Keep scenarios grounded in real life and culturally neutral unless specified.
+- Vary names, locations, and details; do not reuse earlier ideas.
+- Avoid defaulting to coffee shops or repeating the same institution type.
+- The learner is directly involved and must answer the question you create.
+- Create one clear, contextually relevant question in {language_name} that someone would ask in this scenario.
+- Make sure the question is easy, simple and appropriate for language learners.
 
 Respond with valid JSON in this exact format:
 {{
-  "scenario": "English description of a simple everyday scenario (2-3 sentences)",
-  "question_in_language": "One question in {language_name} that someone would ask in this scenario",
-  "question_english": "English translation of the same question",
-  "language": "{language}"
+    "scenario": "English description of a simple everyday scenario (2 sentences)",
+    "question_in_language": "One simple question in {language_name} that someone would ask in this scenario in a language learning context",
+    "question_english": "English translation of the same question",
+    "language": "{language}"
 }}
 
-Make the scenario natural and the questions conversational."""
+Ensure the question matches the selected scenario category and feels conversational."""
 
         response = self.gemini_client.models.generate_content(
             model="gemma-3-27b-it",

@@ -24,16 +24,4 @@ async def generate_listening_practice(request: ListeningRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/evaluate-answer")
-async def evaluate_answer(question: ListeningQuestion, selected_option_index: int):
-    """Evaluate if the selected answer is correct."""
-    try:
-        if selected_option_index < 0 or selected_option_index >= len(question.options):
-            raise HTTPException(status_code=400, detail="Invalid option index")
 
-        evaluation = listening_practice_service.evaluate_answer(question, selected_option_index)
-        return evaluation
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))

@@ -30,12 +30,12 @@ JSON Format:
   "topic": "brief description of the listening practice topic",
   "questions": [
     {
-      "question": "Question about the topic in the target language",
+      "question": "A sentence in the target language",
       "options": [
-        {"text": "Option 1"},
-        {"text": "Option 2"},
-        {"text": "Option 3"},
-        {"text": "Option 4"}
+        {"text": "English translation option 1"},
+        {"text": "English translation option 2"},
+        {"text": "English translation option 3"},
+        {"text": "English translation option 4"}
       ],
       "correct_option_index": 0-3
     }
@@ -45,29 +45,32 @@ JSON Format:
         system_prompt = f"""You are a listening practice builder for {language_name} language learning.
 
 OBJECTIVE:
-Generate exactly 5 listening comprehension questions based on the given topic. Each question should have exactly 4 multiple choice options in {language_name}, where only one answer is correct.
+Generate exactly 5 listening translation questions based on the given topic. Each question is a sentence in {language_name} that needs to be translated to English.
 
 Instructions:
-1. Generate exactly 5 questions about the topic.
-2. Questions should test listening comprehension and understanding.
-3. Each question must have exactly 4 options.
-4. Only one option should be correct.
-5. The incorrect options should be plausible but clearly wrong.
+1. Generate exactly 5 sentences in {language_name} related to the topic.
+2. Each sentence (question) should be a complete, natural sentence in {language_name}.
+3. Provide exactly 4 English translation options for each sentence.
+4. Only one option should be the correct translation.
+5. The incorrect options should be plausible translations but with errors (wrong words, wrong meaning, or awkward phrasing).
 6. Questions should be appropriate for language learners.
 7. Vary the difficulty from easy to moderate.
-8. IMPORTANT: Questions must be in Tagalog ({language_name}), but ALL answer options must be in English.
+8. IMPORTANT: Questions must be in {language_name}, and ALL answer options must be in English.
 9. Output ONLY valid JSON in the specified format.
+10. Randomize the order of options so the correct answer is not always in the same position.\
+11. Make sure the correct_option_index is not always 0.
 
-Example question types:
-- Comprehension questions about a passage
-- Questions about specific details
-- Questions about main ideas
-- Questions about context or meaning
-- Questions about vocabulary in context
+Example:
+Question: "Kumain ako ng hapunan sa restaurant." (in Tagalog)
+Options (in English):
+- "I ate dinner at the restaurant." (correct)
+- "I ate lunch at the restaurant." (wrong meal)
+- "I am eating dinner at the restaurant." (wrong tense)
+- "I ate dinner at home." (wrong place)
 
 """ + json_format
 
-        user_message = f"Generate 5 listening practice questions for this topic: {topic}"
+        user_message = f"Generate 5 listening translation questions (sentences in {language_name} with English translation options) for this topic: {topic}"
 
         response = self.gemini_client.models.generate_content(
             model="gemma-3-27b-it",

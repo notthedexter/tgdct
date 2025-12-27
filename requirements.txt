@@ -10,5 +10,3 @@ requests  # For testing
 gtts
 # torch
 # scipy
-
-gtts
